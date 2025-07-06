@@ -1,4 +1,4 @@
-# Labsheet 1 - Umask
+# <span class ="text-crimson-red ">Labsheet 1 - Umasks</span>
 
 ---
 
@@ -16,7 +16,7 @@ By the end of this lab, students should be able to:
 
 ## 2. Prerequisites
 
-Students should already be familiar with:
+<span class ="text-apple-red">Students should already be familiar with:</span>
 
 - Basic Linux shell commands.
 - File permission symbols (r, w, x) and numeric values (e.g., 755, 644).
@@ -33,7 +33,8 @@ In Linux, when a new file or directory is created, it does **not** get full (`77
 
 **Formula**:  
 
-Final Permission = Default - umask
+> Final Permission = Default - umask
+>
 
 **Example**:
 If `umask` is `022`:
@@ -57,6 +58,53 @@ Note the value shown.
 
 Convert it into permission format and **predict** what the default permission would be for a file and a directory.
 
+Answer
+
+```bash
+rakeshsonea@ubuntu-min:~$ umask
+0002
+rakeshsonea@ubuntu-min:~$
+```
+
+The output `0002` from the `umask` command represents the **default permission mask** used when a user creates new files or directories.
+
+#### Understanding `umask 0002`
+
+- The **umask** value defines which permission bits **should be \*removed\*** from the default permissions.
+- Linux uses the following default permissions:
+  - **Files**: `666` (read & write for all — no execute by default)
+  - **Directories**: `777` (read, write & execute for all)
+
+#### Calculate Effective Permissions:
+
+To get the actual permission:
+
+```tiki wiki
+Effective Permission = Default Permission - umask
+```
+
+So for `umask 0002`:
+
+| Resource  | Default | Umask | Effective |
+| --------- | ------- | ----- | --------- |
+| File      | 666     | 002   | 664       |
+| Directory | 777     | 002   | 775       |
+
+#### This means:
+
+- **Files** will have: `rw-rw-r--`
+- **Directories** will have: `rwxrwxr-x`
+
+#### Practical Implication:
+
+- **User and group** can read/write.
+
+- **Others** can only read (and execute in case of directories).
+
+- It’s often used in environments where users share files within the same group (e.g., project teams), allowing group collaboration.
+
+  ---
+
 ### Activity 2: Create Files and Directories
 
 ```bash
@@ -67,6 +115,8 @@ ls -l
 
 - Observe and **record** the actual permissions.
 - Compare with your prediction from Activity 1.
+
+---
 
 ### Activity 3: Temporarily Change `umask`
 
