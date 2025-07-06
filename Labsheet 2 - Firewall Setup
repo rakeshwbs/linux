@@ -1,0 +1,190 @@
+# **Lab Sheet: Configuring a Firewall using UFW and iptables**
+
+**Module**: Linux Administration
+**Lab Title**: Configuring a Firewall using UFW and iptables
+**Duration**: 1.5 Hours
+**Prerequisites**:
+
+- Basic command line usage in Linux
+- Administrative (sudo/root) privileges
+- Familiarity with networking fundamentals such as IP addressing and port numbers
+
+### 1. Objective
+
+The purpose of this lab is to familiarize students with the basic and advanced functionalities of firewall configuration in Linux using two popular tools: **UFW (Uncomplicated Firewall)** and **iptables**. By the end of the session, students will be able to create rules to allow or deny specific types of network traffic.
+
+### 2. Installing Required Packages
+
+Before beginning firewall configuration, ensure that UFW and iptables are installed and up to date.
+
+```bash
+sudo apt update
+sudo apt install ufw iptables
+```
+
+**Explanation**: The `apt update` command fetches the latest list of packages available from the repositories. The `apt install` command installs UFW and iptables if they are not already present. These are essential tools for controlling incoming and outgoing traffic on a Linux server.
+
+### 3. PART A: Configuring Firewall with UFW
+
+#### Step 1: Check the Status of UFW
+
+```bash
+sudo ufw status verbose
+```
+
+**Explanation**: This command shows the current status of UFW—whether it's active or inactive—and lists the firewall rules in a detailed manner (verbose mode).
+
+#### Step 2: Enable UFW
+
+```bash
+sudo ufw enable
+```
+
+**Explanation**: This enables the firewall with default settings (which is to deny all incoming traffic and allow all outgoing traffic). It's essential to ensure that necessary ports (like SSH) are allowed before enabling it on a remote server.
+
+#### Step 3: Allow Common Services (e.g., SSH, HTTP)
+
+```bash
+sudo ufw allow ssh
+sudo ufw allow 80/tcp
+```
+
+**Explanation**: This allows incoming SSH traffic (port 22) and HTTP traffic (port 80). The first rule uses a predefined application profile for SSH. The second rule specifies the TCP protocol explicitly.
+
+#### Step 4: Deny a Specific Port (e.g., FTP)
+
+```bash
+sudo ufw deny 21
+```
+
+**Explanation**: This denies all incoming traffic on port 21, which is used by FTP. This is useful when you want to block unused or potentially insecure services.
+
+#### Step 5: Allow Port from a Specific IP Address
+
+```bash
+sudo ufw allow from 192.168.1.10 to any port 22 proto tcp
+```
+
+**Explanation**: This allows incoming SSH connections only from the IP address `192.168.1.10`. It is useful in scenarios where you want to restrict access to known and trusted machines.
+
+#### Step 6: Delete a Rule
+
+```bash
+sudo ufw delete allow 80/tcp
+```
+
+**Explanation**: This command removes the rule that allowed HTTP traffic on port 80. Deleting outdated or insecure rules is essential to maintaining a secure firewall.
+
+#### Step 7: Disable UFW
+
+```bash
+sudo ufw disable
+```
+
+**Explanation**: This disables UFW entirely. Useful during troubleshooting or when changing firewall configuration extensively.
+
+#### Step 8: Reset UFW
+
+```bash
+sudo ufw reset
+```
+
+**Explanation**: This resets UFW to its default settings, removing all rules and disabling the firewall. Use this with caution.
+
+### 4. PART B: Configuring Firewall with iptables
+
+#### Step 1: View Current Rules
+
+```bash
+sudo iptables -L -v
+```
+
+**Explanation**: Lists all current rules in the filter table with verbose output, showing the number of packets and bytes matched by each rule.
+
+#### Step 2: Set Default Policies
+
+```bash
+sudo iptables -P INPUT DROP
+sudo iptables -P FORWARD DROP
+sudo iptables -P OUTPUT ACCEPT
+```
+
+**Explanation**: Sets default policies to DROP all incoming and forwarding traffic, and ACCEPT all outgoing traffic. This is a good baseline for a secure server.
+
+#### Step 3: Allow Incoming SSH
+
+```bash
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+```
+
+**Explanation**: Appends a rule to the INPUT chain to accept incoming TCP traffic on port 22 (SSH). This is crucial to maintain remote access to the server.
+
+#### Step 4: Allow Incoming HTTP
+
+```bash
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+```
+
+**Explanation**: Similar to SSH, this allows incoming HTTP requests on port 80.
+
+#### Step 5: Allow Loopback and Established Connections
+
+```bash
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+```
+
+**Explanation**: The loopback rule allows internal communication within the system. The conntrack rule allows responses to outgoing connections, essential for normal operations.
+
+#### Step 6: Drop All Other Incoming Traffic
+
+```bash
+sudo iptables -A INPUT -j DROP
+```
+
+**Explanation**: Any traffic not explicitly allowed above will be dropped. This enforces the default-deny posture.
+
+#### Step 7: Save iptables Rules
+
+```bash
+sudo apt install iptables-persistent
+sudo netfilter-persistent save
+```
+
+**Explanation**: By default, iptables rules are not persistent across reboots. Installing `iptables-persistent` allows you to save and reload rules automatically.
+
+### 5. Verification Tasks
+
+- Use `ufw status verbose` and `iptables -L -v` to confirm your rule sets.
+- From another machine, use tools like `nmap` to scan open ports.
+- Test access to the server via allowed and blocked services.
+
+### 6. Cleanup (Optional)
+
+#### Flush All iptables Rules
+
+```bash
+sudo iptables -F
+sudo iptables -X
+```
+
+**Explanation**: This removes all custom rules from the iptables filter table. Use with caution as it could expose your server.
+
+#### Reset iptables Policies
+
+```bash
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+```
+
+**Explanation**: Resets all policies to ACCEPT, effectively disabling the firewall.
+
+### 7. Lab Questions
+
+1. What is the default policy applied by UFW when enabled?
+2. What will happen if you forget to allow SSH before setting the default iptables INPUT policy to DROP?
+3. How can you restrict access to a service by IP address using UFW?
+4. Compare UFW and iptables in terms of ease of use and flexibility.
+
+**End of Lab**
